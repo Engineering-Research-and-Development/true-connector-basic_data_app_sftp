@@ -1,8 +1,8 @@
-# Basic DataApp
+# Basic DataApp SFTP
 
 [![License: AGPL](https://img.shields.io/github/license/Engineering-Research-and-Development/true-connector-basic_data_app.svg)](https://opensource.org/licenses/AGPL-3.0)
 
-* Open-source project designed by ENG. It represents a trivial data application for generating and consuming data on top of the ECC component.
+* Open-source project designed by ENG. It represents a trivial data application for generating and consuming data on top of the ECC component with use of SFTP.
 
 ---
 
@@ -46,13 +46,13 @@
 ---
 
 
-## Building dataApp <a name="buildingdataapp"></a>
+## Building DataApp SFTP <a name="buildingdataapp"></a>
 
 **Requirements:** <a name="requirements"></a>
 
  `Java11` `Apache Maven`
  
-To build dataApp you will have to do one of the following:
+To build DataApp SFTP you will have to do one of the following:
 
 **Solution 1** <a name="solution1"></a>
 
@@ -80,16 +80,16 @@ How to get GH PAT, you can check following [link](https://docs.github.com/en/aut
  * Clone [WebSocket Message Streamer](https://github.com/Engineering-Research-and-Development/true-connector-websocket_message_streamer)
  * Once this project is cloned, run `mvn clean install`
 
-This will install 2 internal libraries that are needed by DataApp project.
+This will install 2 internal libraries that are needed by DataApp SFTP project.
 
-After that you can run `mvn clean package` in the root of the dataApp project, to build it.
+After that you can run `mvn clean package` in the root of the DataApp SFTP project, to build it.
 
 
-**NOTE:** If you proceed with Solution 2, pay attention to Multipart Message Library and WebSocket Message Streamer versions in pom.xml files, and check if the same versions are used in DataApp pom.xml, if not modify them according to ones from cloned repositories.
+**NOTE:** If you proceed with Solution 2, pay attention to Multipart Message Library and WebSocket Message Streamer versions in pom.xml files, and check if the same versions are used in DataApp SFTP pom.xml, if not modify them according to ones from cloned repositories.
 
 ### Creating docker image <a name="creatingdockerimage"></a>
 
-Once you build dataApp, if required, you can build docker image, by executing following command, from terminal, inside the root of the project:
+Once you build DataApp SFTP, if required, you can build docker image, by executing following command, from terminal, inside the root of the project:
 
 ```
 docker build -t some_tag .
@@ -97,7 +97,7 @@ docker build -t some_tag .
 
 ### Component overview <a name="componentoverview"></a>
 
-Basic DataApp is build using Java11, and use following libraries:
+Basic DataApp SFTP is build using Java11, and use following libraries:
 
 | Component | Version |
 | --- | --- |
@@ -127,7 +127,7 @@ Basic DataApp is build using Java11, and use following libraries:
 
 ## Security <a name="security"></a>
 
-Security in Basic DataApp is implemented via Spring Security mechanism. This framework is responsible for login user and also for response headers.
+Security in Basic DataApp SFTP is implemented via Spring Security mechanism. This framework is responsible for login user and also for response headers.
 
 SpringSecurity:
 
@@ -144,7 +144,7 @@ Cache-Control: no-cache, no-store, max-age=0, must-revalidate
 X-Frame-Options: SAMEORIGIN
 ```
 
-Whole communication is done through TLS mode only, so all endpoint in DataApp are secure.
+Whole communication is done through TLS mode only, so all endpoint in DataApp SFTP are secure.
 Since /proxy endpoint is exposed to the outside world, on separate port (default 8183) there is security requirement, so that only users with credentials can initiate request. Simple in memory user storage solution is implemented to address this requirement.
 
 In the users.properties all user credentials are stored.
@@ -165,7 +165,7 @@ In the example, the property user.list is a list with each item separated by a c
 
 ## Firewall <a name="firewall"></a>
 
-DataApp allows setting up HttpFirewall through Spring Security. To turn it on/off, please take a look at following property: 
+Data App SFTP allows setting up HttpFirewall through Spring Security. To turn it on/off, please take a look at following property: 
 
 ```
 #Firewall
@@ -196,7 +196,7 @@ allowUrlEncodedPeriod=true
 ```
 ***IMPORTANT:*** If you're not an expert, the strong advice is to keep values at their default values. If you decide to change values, pay special attention to `allowHeaderNames` and `allowHeaderValues`, since those set values are exclusive and considered as only values that should be present in the header.
 
-## Dedicated endpoint in DataApp <a name="endpoint"></a>
+## Dedicated endpoint in DataApp SFTP <a name="endpoint"></a>
 
 ### Proxy Endpoint <a name="proxyendpoint"></a>
 
@@ -206,7 +206,7 @@ Following endpoint is exposed on separate port:
 application.proxyPort=8183
 ```
 
-Reason for this is that this port will be exposed via docker configuration to the outside world, while other port will not, and will be used only internally, between ECC and DataApp services. 
+Reason for this is that this port will be exposed via docker configuration to the outside world, while other port will not, and will be used only internally, between ECC and DataApp SFTP services. 
 
 This endpoint also requires basic authorization when sending request. Please check [security](#security).
 
@@ -237,9 +237,9 @@ server.port=8083
 This class listens on websocket port and once property is changed (message is received) it will recreate message and continue with message handling.
 
 
-## Customizing DataApp <a name="customizingdataapp"></a>
+## Customizing DataApp SFTP <a name="customizingdataapp"></a>
 
-If you need to modify dataApp, you can perform such modification in 2 places: Consumer or Provider side.
+If you need to modify DataApp SFTP, you can perform such modification in 2 places: Consumer or Provider side.
 
 ### Consumer side modification <a name="consumersidemodification"></a>
 
@@ -258,7 +258,7 @@ Once response is received, it will just log request. If you need to do something
 
 ### Provider side modification <a name="providersidemodification"></a>
 
-For making modification when dataApp is in provider role, one of the following controllers can be used as starting point
+For making modification when DataApp SFTP is in provider role, one of the following controllers can be used as starting point
 
 * [**it.eng.idsa.dataapp.web.rest.DataControllerBodyBinary (REST Flow)**](https://github.com/Engineering-Research-and-Development/true-connector-basic_data_app/blob/master/src/main/java/it/eng/idsa/dataapp/web/rest/DataControllerBodyBinary.java) 
 
@@ -271,7 +271,7 @@ For making modification when dataApp is in provider role, one of the following c
 
 Depending on the configuration, REST(mixed, form, header) or Web Socket Flow.
 
-This class (controller) is an entry point in Provider part of the dataApp, and it will receive request from Provider ECC.
+This class (controller) is an entry point in Provider part of the DataApp SFTP, and it will receive request from Provider ECC.
 Depending on the IDS Message received it will execute predefined logic in Message Handlers, and that should not be changed. Only modification should be made when ArtifactRequestMessage is received - when creating response payload. Code of interest can be found in following class:
 
  [**it.eng.idsa.dataapp.handler.ArtifactMessageHandler**](https://github.com/Engineering-Research-and-Development/true-connector-basic_data_app/blob/master/src/main/java/it/eng/idsa/dataapp/handler/ArtifactMessageHandler.java)
@@ -308,7 +308,7 @@ In case of adding new types of Message Handlers, the next steps should be taken:
 
 When adding a new type of Message handler, advice is to use [**DataAppExceptionHandler**](https://github.com/Engineering-Research-and-Development/true-connector-basic_data_app/blob/master/src/main/java/it/eng/idsa/dataapp/web/rest/exceptions/DataAppExceptionHandler.java) for exception handling, which handles all type of IDS Message Rejection Reasons.
 
-### Testing DataApp Provider endoint <a name="testingdataappproviderendoint"></a>
+### Testing DataApp SFTP Provider endpoint <a name="testingdataappproviderendoint"></a>
 
 During development process, you can use following curl command (or import it in postman) to test custom logic you are working on. Provided example curl assumes you are using *form* configuration.
 
@@ -363,7 +363,11 @@ In payload you can provide any data that is needed for your backend system: DB q
 
 Using WebSocket configuration, you can exchange files that are read from dataLake property.
 
-Exchanging files can be achieved in two ways in DataApp:
+```
+application.dataLakeDirectory=
+```
+
+Exchanging files can be achieved in two ways in DataApp SFTP:
 
 * Exchanging files through WebSocket - this type of transfer is suitable for files smaller than 25Mb
 * Exchanging files using SFTP - this type of transfer is suitable for files larger than 25Mb
@@ -400,10 +404,7 @@ Following diagram depicts SFTP file exchange flow:
 9. Consumer check previously received `checkSum` value with checkSum value of downloaded artifact and saves it
 
 
-
-```
-application.dataLakeDirectory=
-```
+---
 
 One difference, is that if following property is set to true (default value):
 
@@ -508,7 +509,7 @@ If property is set to *false*, then user must define following resource in Self 
 
 To use WSS flow on the egde and between ECC, do the following:
 
-**Changes in DataApp**
+**Changes in DataApp SFTP**
 
 In `application.properties` file:
 
@@ -661,7 +662,7 @@ curl --location --request POST 'https://localhost:8183/proxy' \
 
 ```
 For <b>REST flow</b>, multipart field should be set to one of the following values: 'mixed', 'form' or 'http-header'.<br/>
-Based on multipart type, and messageType, dataApp will create dedicated message in [Message handlers](#handlers), and send request to connector. 
+Based on multipart type, and messageType, DataApp SFTP will create dedicated message in [Message handlers](#handlers), and send request to connector. 
 
 ```
 application.ecc.host=localhost
@@ -679,9 +680,9 @@ Following properties are used to construct A-endpoint URL, http or https.
 ## Broker interaction <a name="brokerinteraction"></a>
 
 For broker interaction, example requests are listed below:
-You can choose different multiparts - mixed, form or http-header - this is how will DataApp send request to Execution Core Container.
+You can choose different multiparts - mixed, form or http-header - this is how will DataApp SFTP send request to Execution Core Container.
 
-Flow is following: dataApp will create request, and send it to Execution Core Container, on dedicated endpoints. Those endpoints are configured in property file:
+Flow is following: DataApp SFTP will create request, and send it to Execution Core Container, on dedicated endpoints. Those endpoints are configured in property file:
 
 ```
 application.ecc.broker-register-context=/selfRegistration/register
@@ -751,7 +752,7 @@ curl --location --request POST 'https://localhost:8183/proxy' \
 
 ## Contract Negotiation - simple flow <a name="contractnegotiationsimpleflow"></a>
 
-DataApp will send ContractAgreementMessage once *ids:ContractRequestMessage* message is received as input message.</br>
+DataApp SFTP will send ContractAgreementMessage once *ids:ContractRequestMessage* message is received as input message.</br>
 Payload for this response (ContractAgreement) will be fetch from Execution Core Container.
 
 For demo purposes, following property
@@ -762,17 +763,17 @@ application.contract.negotiation.demo=true
 ```
 
 Can be left as is, but in production case, it should be set to false (which will send ProcessNotificationMessage upon receiving ContractRequestMessage, which will disable automatic acceptance of contract agreement.
-User can also modify code in DataApp, to externalize decision for accepting or declining contract offers.
+User can also modify code in DataApp SFTP, to externalize decision for accepting or declining contract offers.
 
 
 ## CheckSum verification <a name="checksumverification"></a>
 
- DataApp will calculate checksum, using CRC32 algorithm, and compare calculated checksum with the one from ArtifactResponseMessage.
-If received self-description from provider has a checkSum value, DataApp will verify that value with the current checkSum value in Artifact Response Message.
+ DataApp SFTP will calculate checksum, using CRC32 algorithm, and compare calculated checksum with the one from ArtifactResponseMessage.
+If received self-description from provider has a checkSum value, DataApp SFTP will verify that value with the current checkSum value in Artifact Response Message.
 
 If the values are identical, payload will be consumed, if not, the rejection message will be thrown informing the user that file integrity has been broken.
 
-If that requested element doesn't have a checksum in the self-description, DataApp will skip the verification even if turned on.
+If that requested element doesn't have a checksum in the self-description, DataApp SFTP will skip the verification even if turned on.
 
 CheckSum verification can be configured in the following properties
 
