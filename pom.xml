@@ -48,7 +48,7 @@
 		<repository>
 			<id>github</id>
 			<name>GitHub Packages</name>
-			<url>https://maven.pkg.github.com/Engineering-Research-and-Development/true-connector-basic_data_app</url>
+			<url>https://maven.pkg.github.com/Engineering-Research-and-Development/true-connector-basic_data_app_sftp</url>
 		</repository>
 	</distributionManagement>
 	<dependencies>
