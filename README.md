@@ -847,7 +847,7 @@ application.extractPayloadFromResponse=true
 
 In order to start TRUE Connector with DataAPP SFTP, you can clone TRUEConnector [repository](https://github.com/Engineering-Research-and-Development/true-connector/tree/v1.0.7) and do the following changes:
 
-* In docker compose change following values:
+* In `docker-compose.yml` do the following changes:
 
 `be-dataapp-provider:`
 ```
@@ -901,7 +901,8 @@ extra_hosts:
     - "be-dataapp-consumer:172.17.0.1"
 ```
 
-`be-dataapp_resources/application-docker.properties`
+* In `be-dataapp_resources/application-docker.properties` do the following changes:
+
 
 ```
 application.trustStoreName=${TRUSTORE_NAME}
@@ -914,7 +915,7 @@ application.sftp.connectorId=http://w3id.org/engrd/connector/test
 application.sftp.defaultTimeoutSeconds=100
 ```
 
-`.env`
+* In `.env` do the following changes:
 
 ```
 MULTIPART_ECC=mixed
