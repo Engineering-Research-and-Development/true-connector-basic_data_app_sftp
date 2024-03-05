@@ -362,6 +362,44 @@ In payload you can provide any data that is needed for your backend system: DB q
 
 Using WebSocket configuration, you can exchange files that are read from dataLake property.
 
+Exchanging files can be achieved in two ways in DataApp:
+
+* Exchanging files through WebSocket - this type of transfer is suitable for files smaller than 25Mb
+* Exchanging files using SFTP - this type of transfer is suitable for files larger than 25Mb
+
+#### WebSocket file exchange
+
+Following diagram depicts WebSocket file exchange flow: 
+
+![DataApp Code Coverage](doc/wss_flow.png?raw=true "WSS flow")
+
+
+1. Consumer sends `ArtifactReqeustMessage` to Provider
+2. Provider reads file from datalake and creates payload
+3. Provider creates `ArtifactResponseMessage`
+3. Provider sends `ArtifactResponseMessage` with file as payload to Consumer
+4. Consumer saves the artifact
+
+
+#### SFTP file exchange
+
+Following diagram depicts SFTP file exchange flow: 
+
+![DataApp Code Coverage](doc/sftp_flow.png?raw=true "SFTP flow")
+
+
+1. Consumer sends `ArtifactReqeustMessage` to Provider
+2. Provider checks if payload containts `sftp` object with value `true`
+3. Provider calculates `checkSum` of requested artifact
+4. Provider creates payload with `checkSum` value and `sftp` bolean set to `true`
+5. Provider creates `ArtifactResponseMessage`
+6. Provider sends `ArtifactResponseMessage` with `checkSum` value and `sftp` bolean set to `true` as payload
+7. Consumer checks if `sftp` bolean is set to `true`
+8. Consumer starts SFTP Client to communicate with SFTP Server on Provider to download the artifact
+9. Consumer check previously received `checkSum` value with checkSum value of downloaded artifact and saves it
+
+
+
 ```
 application.dataLakeDirectory=
 ```
@@ -476,7 +514,7 @@ In `application.properties` file:
 ```
 application.verifyCheckSum=true
 ```
-If the size of files for transfer are larger than 30Mb, please also modify the next properties in `application.properties` file:
+If the size of files for transfer are larger than 25Mb SFTP flow MUST be userd, please also modify the next properties in `application.properties` file:
 
 
 ```
@@ -550,7 +588,7 @@ curl --location --request POST 'https://localhost:8183/proxy' \
 }'
 ```
 
-If the files that you want to transfer are larger than 30Mb, please put next content as payload:
+If the files that you want to transfer are larger than 25Mb SFTP flow MUST be used, please put next content as payload:
 
 ```
 "payload": {
@@ -822,6 +860,3 @@ For more up to date information about code coverage, you can check report after 
 ```
 target\site\jacoco\index.html
 ```
-
-
-
