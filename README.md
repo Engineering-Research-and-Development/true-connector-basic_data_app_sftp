@@ -40,6 +40,7 @@
 * [Payload configuration](#payloadconfig)
   * [Base64 encoded payload](#base64encodedpayload)
   * [Extract payload from response](#extractpayloadfromresponse)
+* [Starting TRUE Connector with DataApp SFTP](#tcstarting)
 * [Code Coverage](#codecoverage)
 
 ---
@@ -842,6 +843,93 @@ If you want the sender side Data App to extract only the payload from the receiv
 application.extractPayloadFromResponse=true
 ```
 
+## Starting TRUE Connector with DataApp SFTP <a name="tcstarting"></a>
+
+In order to start TRUE Connector with DataAPP SFTP, you can clone TRUEConnector [repository](https://github.com/Engineering-Research-and-Development/true-connector/tree/v1.0.7) and do the following changes:
+
+* In docker compose change following values:
+
+`be-dataapp-provider:`
+```
+#FROM
+image: rdlabengpa/ids_be_data_app:v0.3.8
+#TO
+image: rdlabengpa/ids_be_data_app_sftp:v0.3.8
+
+networks:
+    - provider
+    - consumer
+    
+expose:
+    - "9000"
+    - "2222"
+
+environment:
+    ...
+    ...
+    ...
+    - TRUSTORE_NAME=${TRUSTORE_NAME}
+    - TRUSTORE_PASSWORD=${TRUSTORE_PASSWORD}
+    
+extra_hosts:
+    - "be-dataapp-provider:172.17.0.1"
+```
+
+`be-dataapp-consumer:`
+```
+#FROM
+image: rdlabengpa/ids_be_data_app:v0.3.8
+#TO
+image: rdlabengpa/ids_be_data_app_sftp:v0.3.8
+
+networks:
+    - consumer
+    - provider
+    
+expose:
+    - "9000"
+    - "2222"
+
+environment:
+    ...
+    ...
+    ...
+    - TRUSTORE_NAME=${TRUSTORE_NAME}
+    - TRUSTORE_PASSWORD=${TRUSTORE_PASSWORD}
+    
+extra_hosts:
+    - "be-dataapp-consumer:172.17.0.1"
+```
+
+`be-dataapp_resources/application-docker.properties`
+
+```
+application.trustStoreName=${TRUSTORE_NAME}
+application.trustStorePassword=${TRUSTORE_PASSWORD}
+
+#SFTP settings
+application.sftp.host=be-dataapp-provider
+application.sftp.port=2222
+application.sftp.connectorId=http://w3id.org/engrd/connector/test
+application.sftp.defaultTimeoutSeconds=100
+```
+
+`.env`
+
+```
+MULTIPART_ECC=mixed
+WS_ECC=true
+
+PROVIDER_MULTIPART_EDGE=mixed
+#PROVIDER_DATA_APP_ENDPOINT=https://be-dataapp-provider:8083/data
+# In case of WSS configuration
+PROVIDER_DATA_APP_ENDPOINT=https://be-dataapp-provider:9000/incoming-data-app/routerBodyBinary
+PROVIDER_WS_EDGE=true
+
+CONSUMER_MULTIPART_EDGE=mixed
+CONSUMER_WS_EDGE=true
+
+```
 
 ## Code coverage<a name="codecoverage"></a>
 
