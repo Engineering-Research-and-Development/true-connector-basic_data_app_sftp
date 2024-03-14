@@ -40,12 +40,6 @@ public class FTPClient {
 	@Value("${application.sftp.connectorId}")
 	private String username;
 
-	@Value("${application.sftp.host}")
-	private String host;
-
-	@Value("${application.sftp.port}")
-	private int port;
-
 	@Value("${application.sftp.defaultTimeoutSeconds}")
 	private long defaultTimeoutSeconds;
 
@@ -60,7 +54,7 @@ public class FTPClient {
 		return new KeyPair(publicKey, key);
 	}
 
-	public boolean downloadArtifact(String artifact) throws Exception {
+	public boolean downloadArtifact(String artifact, String host, int port) throws Exception {
 		SshClient client = SshClient.setUpDefaultClient();
 		client.addPublicKeyIdentity(loadKeyPair());
 		client.addPasswordIdentity(tlsKeystorePassword);
@@ -81,7 +75,7 @@ public class FTPClient {
 				try {
 					scpClient.download(artifact, dataLakeDirectory, ScpClient.Option.PreserveAttributes,
 							ScpClient.Option.TargetIsDirectory);
-					logger.info("Connecting to SFTP server: " + host + port + "...");
+					logger.info("Connecting to SFTP server: " + host + ":" + port + "...");
 				} catch (ScpException e) {
 					logger.error("SCP download failed: ", e);
 					throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -94,7 +88,7 @@ public class FTPClient {
 					throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
 							"Error while processing request, check logs for more details" + errorString);
 				}
-				logger.info("Artifact: " + artifact + " fetched from SFTP server: " + host + port);
+				logger.info("Artifact: " + artifact + " fetched from SFTP server: " + host + ":" + port);
 				return true;
 			}
 		} catch (SshException e) {

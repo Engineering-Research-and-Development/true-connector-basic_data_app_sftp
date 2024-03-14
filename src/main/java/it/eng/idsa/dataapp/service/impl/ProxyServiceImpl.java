@@ -34,6 +34,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import de.fraunhofer.iais.eis.ArtifactImpl;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
@@ -59,6 +61,7 @@ import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import de.fraunhofer.iais.eis.util.Util;
 import it.eng.idsa.dataapp.configuration.ECCProperties;
 import it.eng.idsa.dataapp.domain.ProxyRequest;
+import it.eng.idsa.dataapp.domain.SftpPayload;
 import it.eng.idsa.dataapp.ftp.client.FTPClient;
 import it.eng.idsa.dataapp.service.CheckSumService;
 import it.eng.idsa.dataapp.service.ProxyService;
@@ -611,17 +614,17 @@ public class ProxyServiceImpl implements ProxyService {
 		Message responseMsg = response.getHeaderContent();
 		String requestedArtifact = null;
 		if (requestMessage instanceof ArtifactRequestMessage && responseMsg instanceof ArtifactResponseMessage) {
-			String payload = response.getPayloadContent();
+			SftpPayload sftpPayload = fromPaloyadToSftpPayload(response.getPayloadContent());
 			String reqArtifact = ((ArtifactRequestMessage) requestMessage).getRequestedArtifact().getPath();
 			requestedArtifact = reqArtifact.substring(reqArtifact.lastIndexOf('/') + 1);
 
 			try {
-				if (ftpClient.downloadArtifact(requestedArtifact)) {
+				if (ftpClient.downloadArtifact(requestedArtifact, sftpPayload.getHost(), sftpPayload.getPort())) {
 					if (verifyCheckSum) {
-						String payloadCheckSum = getChecksum(payload);
+
 						String downloadedChecksum = checkSumService.get().calculateCheckSumToString(requestedArtifact,
 								requestMessage);
-						if (StringUtils.equals(payloadCheckSum, downloadedChecksum)) {
+						if (StringUtils.equals(sftpPayload.getCheckSum(), downloadedChecksum)) {
 							logger.info("File downloaded and saved");
 						} else {
 							logger.error("Downloaded file corrupted, deleteing it...");
@@ -680,7 +683,8 @@ public class ProxyServiceImpl implements ProxyService {
 		if (mm.getHeaderContent() instanceof ArtifactResponseMessage) {
 			try {
 				String fileNameSaved;
-				if (isSftp(proxyRequest.getPayload())) {
+				SftpPayload sftpPayload = fromPaloyadToSftpPayload(proxyRequest.getPayload());
+				if (sftpPayload.isSftp()) {
 					fileNameSaved = downloadAndSaveFile(responseMessage, requestMessage);
 				} else {
 					fileNameSaved = saveFileToDisk(responseMessage, requestMessage);
@@ -860,50 +864,65 @@ public class ProxyServiceImpl implements ProxyService {
 		return checkSumService.map(service -> service.calculateCheckSum(responsePayload.getBytes())).orElse(null);
 	}
 
-	private boolean isSftp(Object payload) {
-		logger.info("Checking the type of WSS flow...");
+//	private boolean isSftp(Object payload) {
+//		logger.info("Checking the type of WSS flow...");
+//
+//		if (payload == null || ObjectUtils.isEmpty(payload)) {
+//			logger.info("Payload is empty, saving file directly from payload...");
+//			return false;
+//		} else {
+//			String payloadString = payload.toString();
+//			try {
+//				JSONObject jsonObject = (JSONObject) parser.parse(payloadString);
+//
+//				if (jsonObject.containsKey("sftp") && (Boolean) jsonObject.get("sftp")) {
+//					logger.info("Proceeding with downloading through SFTP...");
+//					return true;
+//				} else {
+//					logger.error(
+//							"Either 'sftp' is not present, or its value is not true, trying to save file directly from payload...");
+//					return false;
+//				}
+//			} catch (ParseException e) {
+//				logger.error("Could not serialize payload.", e);
+//
+//				throw new InternalRecipientException("Could not serialize payload");
+//			}
+//		}
+//	}
 
-		if (payload == null || ObjectUtils.isEmpty(payload)) {
-			logger.info("Payload is empty, saving file directly from payload...");
-			return false;
-		} else {
-			String payloadString = payload.toString();
-			try {
-				JSONObject jsonObject = (JSONObject) parser.parse(payloadString);
+	private SftpPayload fromPaloyadToSftpPayload(String payload) {
+		ObjectMapper objectMapper = new ObjectMapper();
 
-				if (jsonObject.containsKey("sftp") && (Boolean) jsonObject.get("sftp")) {
-					logger.info("Proceeding with downloading through SFTP...");
-					return true;
-				} else {
-					logger.error(
-							"Either 'sftp' is not present, or its value is not true, trying to save file directly from payload...");
-					return false;
-				}
-			} catch (ParseException e) {
-				logger.error("Could not serialize payload.", e);
-
-				throw new InternalRecipientException("Could not serialize payload");
-			}
-		}
-	}
-
-	private String getChecksum(Object payload) {
-		String payloadString = payload.toString();
-		JSONObject jsonObject;
 		try {
-			jsonObject = (JSONObject) parser.parse(payloadString);
-			if (jsonObject.containsKey("checkSum")) {
-				logger.info("Extracting checkSum from payload...");
+			SftpPayload sftpPayload = objectMapper.readValue(payload, SftpPayload.class);
 
-				return jsonObject.get("checkSum").toString();
-			} else {
-				logger.error("Payload doesn't contain checkSum");
-				return null;
-			}
-		} catch (ParseException e) {
+			return sftpPayload;
+
+		} catch (Exception e) {
 			logger.error("Could not serialize payload.", e);
 
 			throw new InternalRecipientException("Could not serialize payload");
 		}
 	}
+
+//	private String getChecksum(Object payload) {
+//		String payloadString = payload.toString();
+//		JSONObject jsonObject;
+//		try {
+//			jsonObject = (JSONObject) parser.parse(payloadString);
+//			if (jsonObject.containsKey("checkSum")) {
+//				logger.info("Extracting checkSum from payload...");
+//
+//				return jsonObject.get("checkSum").toString();
+//			} else {
+//				logger.error("Payload doesn't contain checkSum");
+//				return null;
+//			}
+//		} catch (ParseException e) {
+//			logger.error("Could not serialize payload.", e);
+//
+//			throw new InternalRecipientException("Could not serialize payload");
+//		}
+//	}
 }

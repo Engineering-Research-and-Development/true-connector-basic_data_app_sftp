@@ -50,6 +50,8 @@ class ArtifactMessageHandlerTest {
 	private Boolean contractNegotiationDemo = false;
 	private Path dataLakeDirectory = Path.of("src/test/resources/dataFiles");
 	private Boolean verifyCheckSum = false;
+	private String sftpHost = "localhost";
+	private int sftpPort = 2222;
 
 	@BeforeEach
 	public void init() {
@@ -58,7 +60,8 @@ class ArtifactMessageHandlerTest {
 		Optional<CheckSumService> optionalCheckSumService = Optional.of(checkSumService);
 
 		artifactMessageHandler = new ArtifactMessageHandler(selfDescriptionService, threadService,
-				optionalCheckSumService, dataLakeDirectory, verifyCheckSum, contractNegotiationDemo, encodePayload);
+				optionalCheckSumService, dataLakeDirectory, verifyCheckSum, contractNegotiationDemo, encodePayload,
+				sftpHost, sftpPort);
 		ReflectionTestUtils.setField(artifactMessageHandler, "issuerConnector", issuerConnector);
 		message = UtilMessageService.getArtifactRequestMessage();
 		baseConnector = SelfDescriptionUtil.createDefaultSelfDescription();
@@ -81,7 +84,7 @@ class ArtifactMessageHandlerTest {
 	void handleMessageWssTest() {
 
 		when(threadService.getThreadLocalValue("wss")).thenReturn(true);
-		
+
 		responseMap = artifactMessageHandler.handleMessage(message, "");
 
 		assertNotNull(responseMap.get("header"));
@@ -172,8 +175,9 @@ class ArtifactMessageHandlerTest {
 
 	@Test
 	void handleMessageRequestElementNotPresentInSelfDescriptionRestTest() {
-		
-		when(selfDescriptionService.artifactRequestedElementExist((ArtifactRequestMessage) message,selfDescriptionService.getSelfDescription(message))).thenReturn(false);
+
+		when(selfDescriptionService.artifactRequestedElementExist((ArtifactRequestMessage) message,
+				selfDescriptionService.getSelfDescription(message))).thenReturn(false);
 
 		NotFoundException exception = assertThrows(NotFoundException.class, () -> {
 			responseMap = artifactMessageHandler.handleMessage(message, PAYLOAD);
@@ -183,7 +187,7 @@ class ArtifactMessageHandlerTest {
 
 	@Test
 	void handleMessageRequestElementNotPresentInSelfDescriptionWssTest() {
-		
+
 		when(threadService.getThreadLocalValue("wss")).thenReturn(true);
 
 		when(selfDescriptionService.artifactRequestedElementExist((ArtifactRequestMessage) message,

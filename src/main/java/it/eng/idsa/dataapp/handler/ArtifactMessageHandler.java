@@ -22,12 +22,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.ArtifactResponseMessageBuilder;
 import de.fraunhofer.iais.eis.Message;
+import it.eng.idsa.dataapp.domain.SftpPayload;
 import it.eng.idsa.dataapp.service.CheckSumService;
 import it.eng.idsa.dataapp.service.SelfDescriptionService;
 import it.eng.idsa.dataapp.service.ThreadService;
@@ -49,6 +51,8 @@ public class ArtifactMessageHandler extends DataAppMessageHandler {
 	private Boolean verifyCheckSum;
 	private Boolean contractNegotiationDemo;
 	private JSONParser parser = new JSONParser();
+	private String sftpHost;
+	private int sftpPort;
 
 	private static final Logger logger = LoggerFactory.getLogger(ArtifactMessageHandler.class);
 
@@ -57,7 +61,8 @@ public class ArtifactMessageHandler extends DataAppMessageHandler {
 			@Value("${application.dataLakeDirectory}") Path dataLakeDirectory,
 			@Value("${application.verifyCheckSum}") Boolean verifyCheckSum,
 			@Value("${application.contract.negotiation.demo}") Boolean contractNegotiationDemo,
-			@Value("#{new Boolean('${application.encodePayload:false}')}") Boolean encodePayload) {
+			@Value("#{new Boolean('${application.encodePayload:false}')}") Boolean encodePayload,
+			@Value("${application.sftp.host}") String sftpHost, @Value("${application.sftp.port}") int sftpPort) {
 		this.selfDescriptionService = selfDescriptionService;
 		this.threadService = threadService;
 		this.checkSumService = checkSumService;
@@ -65,9 +70,10 @@ public class ArtifactMessageHandler extends DataAppMessageHandler {
 		this.contractNegotiationDemo = contractNegotiationDemo;
 		this.encodePayload = encodePayload;
 		this.verifyCheckSum = verifyCheckSum;
+		this.sftpHost = sftpHost;
+		this.sftpPort = sftpPort;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Map<String, Object> handleMessage(Message message, Object payload) {
 		logger.info("Handling header through ArtifactMessageHandler");
@@ -82,14 +88,13 @@ public class ArtifactMessageHandler extends DataAppMessageHandler {
 			if (Boolean.TRUE.equals(((Boolean) threadService.getThreadLocalValue("wss")))) {
 				logger.debug("Handling message with requestedElement:" + arm.getRequestedArtifact() + " in WSS flow");
 				if (isSftp(payload)) {
-					JSONObject jsonObject = new JSONObject();
 					if (verifyCheckSum) {
-						jsonObject.put("checkSum", handleWssFlowWithSftp(message));
-						jsonObject.put("sftp", "true");
-						payload = jsonObject;
+						String checkSum = handleWssFlowWithSftp(message);
+						SftpPayload sftpPayload = new SftpPayload(checkSum, true, sftpHost, sftpPort);
+						payload = serializeSftpPayload(sftpPayload);
 					} else {
-						jsonObject.put("sftp", "true");
-						payload = jsonObject;
+						SftpPayload sftpPayload = new SftpPayload(true, sftpHost, sftpPort);
+						payload = serializeSftpPayload(sftpPayload);
 					}
 				} else {
 					payload = handleWssFlow(message);
@@ -259,6 +264,21 @@ public class ArtifactMessageHandler extends DataAppMessageHandler {
 
 				throw new InternalRecipientException("Could not serialize payload");
 			}
+		}
+	}
+
+	private String serializeSftpPayload(SftpPayload sftpPayload) {
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		try {
+			String jsonString = objectMapper.writeValueAsString(sftpPayload);
+
+			return jsonString;
+
+		} catch (Exception e) {
+			logger.error("Could not serialize sftpPayload.", e);
+
+			throw new InternalRecipientException("Could not serialize sftpPayload");
 		}
 	}
 

@@ -69,7 +69,7 @@ public class FTPClientTest {
 
 //	@Test
 	public void clientTest() throws Exception {
-		ftpClient.downloadArtifact("README.md");
+		ftpClient.downloadArtifact("README.md", "localhost", 2222);
 	}
 
 //	@Test
