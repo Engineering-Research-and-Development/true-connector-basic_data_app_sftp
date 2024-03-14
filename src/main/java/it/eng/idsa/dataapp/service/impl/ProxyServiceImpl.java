@@ -864,33 +864,6 @@ public class ProxyServiceImpl implements ProxyService {
 		return checkSumService.map(service -> service.calculateCheckSum(responsePayload.getBytes())).orElse(null);
 	}
 
-//	private boolean isSftp(Object payload) {
-//		logger.info("Checking the type of WSS flow...");
-//
-//		if (payload == null || ObjectUtils.isEmpty(payload)) {
-//			logger.info("Payload is empty, saving file directly from payload...");
-//			return false;
-//		} else {
-//			String payloadString = payload.toString();
-//			try {
-//				JSONObject jsonObject = (JSONObject) parser.parse(payloadString);
-//
-//				if (jsonObject.containsKey("sftp") && (Boolean) jsonObject.get("sftp")) {
-//					logger.info("Proceeding with downloading through SFTP...");
-//					return true;
-//				} else {
-//					logger.error(
-//							"Either 'sftp' is not present, or its value is not true, trying to save file directly from payload...");
-//					return false;
-//				}
-//			} catch (ParseException e) {
-//				logger.error("Could not serialize payload.", e);
-//
-//				throw new InternalRecipientException("Could not serialize payload");
-//			}
-//		}
-//	}
-
 	private SftpPayload fromPaloyadToSftpPayload(String payload) {
 		ObjectMapper objectMapper = new ObjectMapper();
 
@@ -905,24 +878,4 @@ public class ProxyServiceImpl implements ProxyService {
 			throw new InternalRecipientException("Could not serialize payload");
 		}
 	}
-
-//	private String getChecksum(Object payload) {
-//		String payloadString = payload.toString();
-//		JSONObject jsonObject;
-//		try {
-//			jsonObject = (JSONObject) parser.parse(payloadString);
-//			if (jsonObject.containsKey("checkSum")) {
-//				logger.info("Extracting checkSum from payload...");
-//
-//				return jsonObject.get("checkSum").toString();
-//			} else {
-//				logger.error("Payload doesn't contain checkSum");
-//				return null;
-//			}
-//		} catch (ParseException e) {
-//			logger.error("Could not serialize payload.", e);
-//
-//			throw new InternalRecipientException("Could not serialize payload");
-//		}
-//	}
 }
